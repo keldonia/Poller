@@ -26,5 +26,22 @@ class Question < ActiveRecord::Base
     through: :answer_choices,
     source: :responses
 
-  
+  def results
+    id = self.id
+
+    Question.find_by_sql(<<-SQL)
+      SELECT
+        answer_choices.response_text, COUNT(responses.user_id)
+      FROM
+        questions
+        JOIN
+        answer_choices ON questions.id = answer_choices.question_id
+        JOIN
+        responses ON answer_choices.id = responses.answer_choice_id
+      WHERE
+        questions.id = #{id}
+      GROUP BY
+        responses.answer_choice_id
+    SQL
+  end
 end
